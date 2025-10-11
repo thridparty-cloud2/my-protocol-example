@@ -1,11 +1,19 @@
 package com.mine.protocol.demo.msg;
 
 import cn.hutool.core.util.RandomUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.x.iot.protocol.support.context.DeviceSessionCtx;
+import com.x.iot.protocol.support.context.ThingModelDefinition;
 import com.x.iot.protocol.support.message.TagTypeLenValue;
+import com.x.iot.protocol.support.message.standard.ThingModelDefinitionMessage;
 import com.x.iot.protocol.support.message.standard.ThingModelMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author zoro.kong
@@ -14,114 +22,97 @@ import java.util.List;
  * @description TODO 自定义消息与物模型消息映射 可以通过设备调试或虚拟客户端熟悉TTLV数据组装格式。
  */
 public class ThingsModelMsgConverter {
-
-    public static ThingModelMessage convert(DeviceStateMsg deviceStateMsg,String payload) {
-        ThingModelMessage thingModelMessage = new ThingModelMessage();
+    private static final ObjectMapper mapper = new ObjectMapper();
+    /**
+     * 自定义消息与物模型映射
+     * 由于我定义的物模型code与设备消息中json code一致，甚至可以不用获取物模型定义来转换
+     */
+    public static ThingModelMessage convert(DeviceStateMsg deviceStateMsg, String payload, DeviceSessionCtx sessionCtx) {
+        ThingModelDefinitionMessage thingModelMessage = new ThingModelDefinitionMessage();
         //防止时间戳冲突
         thingModelMessage.setMsgId(deviceStateMsg.getTimestamp() + RandomUtil.randomNumbers(3));
         thingModelMessage.setMsgSize((long)payload.length());
         thingModelMessage.setSubType(ThingModelMessage.ThingsModelSubType.REPORT);
         thingModelMessage.setPayload(payload);
-        List<TagTypeLenValue> tagTypeLenValues = new ArrayList<>();
-        if (deviceStateMsg.getState() != null){
-            TagTypeLenValue tagTypeLenValue = new TagTypeLenValue();
-            tagTypeLenValue.setId(TslEnum.STATE.id);
-            tagTypeLenValue.setType(TslEnum.STATE.type);
-            tagTypeLenValue.setValue(State.getTslValue(deviceStateMsg.getState()));
-            tagTypeLenValues.add(tagTypeLenValue);
-        }
-        if (deviceStateMsg.getBrightness() != null){
-            TagTypeLenValue tagTypeLenValue = new TagTypeLenValue();
-            tagTypeLenValue.setId(TslEnum.BRIGHTNESS.id);
-            tagTypeLenValue.setType(TslEnum.BRIGHTNESS.type);
-            tagTypeLenValue.setValue(deviceStateMsg.getBrightness());
-            tagTypeLenValues.add(tagTypeLenValue);
-        }
-        thingModelMessage.setMessage(tagTypeLenValues);
+        Map<Integer, ThingModelDefinition> thingModelDefinitions = sessionCtx.thingsModelDefinition();
+        //转换为code-value映射
 
+        Map<String,ThingModelDefinition> thingModelDefinitionMap =thingModelDefinitions.entrySet().stream().collect(
+               Collectors.toMap(entry -> entry.getValue().getCode(), Map.Entry::getValue));
+        //获取code-value映射
+        ObjectNode properties = mapper.createObjectNode();
+        thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
+            if (code.equals("state")){
+                properties.put(code,deviceStateMsg.getState());
+            }
+            if (code.equals("brightness")){
+                properties.put(code,deviceStateMsg.getBrightness());
+            }
+            if (code.equals("timestamp")){
+                properties.put(code,deviceStateMsg.getTimestamp());
+            }
+        });
+        ThingModelDefinitionMessage.ThingModelDefinition definition = new ThingModelDefinitionMessage.ThingModelDefinition();
+        definition.setProps(properties);
+        thingModelMessage.setMessage(definition);
         return thingModelMessage;
     }
-    public static ThingModelMessage convert(DeviceErrorMsg deviceErrorMsg,String payload) {
-        ThingModelMessage thingModelMessage = new ThingModelMessage();
+    public static ThingModelMessage convert(DeviceErrorMsg deviceErrorMsg,String payload,DeviceSessionCtx sessionCtx) {
+        ThingModelDefinitionMessage thingModelMessage = new ThingModelDefinitionMessage();
         //随机生成一个
         thingModelMessage.setMsgId(RandomUtil.randomNumbers(6));
         thingModelMessage.setMsgSize((long)payload.length());
         thingModelMessage.setSubType(ThingModelMessage.ThingsModelSubType.REPORT);
         thingModelMessage.setPayload(payload);
-        List<TagTypeLenValue> tagTypeLenValues = new ArrayList<>();
-        if (deviceErrorMsg.getCode().equalsIgnoreCase("ERR_OVERHEAT")){
-            TagTypeLenValue tagTypeLenValue = new TagTypeLenValue();
-            tagTypeLenValue.setId(TslEnum.ERR_OVERHEAT.id);
-            tagTypeLenValue.setType(TslEnum.ERR_OVERHEAT.type);
-            List<TagTypeLenValue> values = new ArrayList<>();
-            TagTypeLenValue value = new TagTypeLenValue();
-            SEVERITY severity = SEVERITY.getByCode(deviceErrorMsg.getSeverity());
-            if (severity != null) {
-                value.setId(severity.id);
-                value.setType("enum");
-                value.setValue(severity.value);
-                values.add(value);
+        Map<Integer, ThingModelDefinition> thingModelDefinitions = sessionCtx.thingsModelDefinition();
+        //转换为code-value映射
+
+        Map<String,ThingModelDefinition> thingModelDefinitionMap =thingModelDefinitions.entrySet().stream().collect(
+                Collectors.toMap(entry -> entry.getValue().getCode(), Map.Entry::getValue));
+        //获取code-value映射
+        ObjectNode events = mapper.createObjectNode();
+        thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
+            if (code.equals("ERR_OVERHEAT")){
+                ObjectNode values = mapper.createObjectNode();
+                values.put("severity", Objects.requireNonNull(SEVERITY.getByCode(deviceErrorMsg.getSeverity())).value);
+                values.put("message",deviceErrorMsg.getMessage());
+                values.put("timestamp",deviceErrorMsg.getTimestamp());
+                events.putPOJO(code,values);
             }
-            tagTypeLenValue.setValue(values);
-            tagTypeLenValues.add(tagTypeLenValue);
-        }
-        thingModelMessage.setMessage(tagTypeLenValues);
+        });
+        ThingModelDefinitionMessage.ThingModelDefinition definition = new ThingModelDefinitionMessage.ThingModelDefinition();
+        definition.setEvents(events);
+        thingModelMessage.setMessage(definition);
         return thingModelMessage;
     }
 
-    public static ThingModelMessage convert(DeviceCommandMsg deviceCommandMsg,String payload) {
-        ThingModelMessage thingModelMessage = new ThingModelMessage();
+    public static ThingModelMessage convert(DeviceCommandMsg deviceCommandMsg,String payload,DeviceSessionCtx sessionCtx) {
+        ThingModelDefinitionMessage thingModelMessage = new ThingModelDefinitionMessage();
         //随机生成一个
         thingModelMessage.setMsgId(RandomUtil.randomNumbers(6));
         thingModelMessage.setMsgSize((long)payload.length());
         thingModelMessage.setSubType(ThingModelMessage.ThingsModelSubType.REPORT);
         thingModelMessage.setPayload(payload);
-        List<TagTypeLenValue> tagTypeLenValues = new ArrayList<>();
-        if (deviceCommandMsg.getPayload().getState() != null){
-            TagTypeLenValue tagTypeLenValue = new TagTypeLenValue();
-            tagTypeLenValue.setId(TslEnum.STATE.id);
-            tagTypeLenValue.setType(TslEnum.STATE.type);
-            tagTypeLenValue.setValue(State.getTslValue(deviceCommandMsg.getPayload().getState()));
-            tagTypeLenValues.add(tagTypeLenValue);
-        }
-        if (deviceCommandMsg.getPayload().getBrightness() != null){
-            TagTypeLenValue tagTypeLenValue = new TagTypeLenValue();
-            tagTypeLenValue.setId(TslEnum.BRIGHTNESS.id);
-            tagTypeLenValue.setType(TslEnum.BRIGHTNESS.type);
-            tagTypeLenValue.setValue(deviceCommandMsg.getPayload().getBrightness());
-            tagTypeLenValues.add(tagTypeLenValue);
-        }
-        thingModelMessage.setMessage(tagTypeLenValues);
+        Map<Integer, ThingModelDefinition> thingModelDefinitions = sessionCtx.thingsModelDefinition();
+        //转换为code-value映射
 
+        Map<String,ThingModelDefinition> thingModelDefinitionMap =thingModelDefinitions.entrySet().stream().collect(
+                Collectors.toMap(entry -> entry.getValue().getCode(), Map.Entry::getValue));
+        //获取code-value映射
+        ObjectNode properties = mapper.createObjectNode();
+        thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
+            if (code.equals("action")){
+                properties.put(code,deviceCommandMsg.getAction());
+            }
+            if (code.equals("payload")){
+                properties.putPOJO(code,deviceCommandMsg.getPayload());
+            }
+        });
+        ThingModelDefinitionMessage.ThingModelDefinition definition = new ThingModelDefinitionMessage.ThingModelDefinition();
+        definition.setProps(properties);
+        thingModelMessage.setMessage(definition);
         return thingModelMessage;
     }
-    /**
-     * 记录自定义消息与物模型映射关系
-     */
-    public static enum TslEnum {
-        STATE("state",1,"enum"),
-        BRIGHTNESS("brightness",2,"number"),
-        //事件输出参数类型为结构体
-        ERR_OVERHEAT("ERR_OVERHEAT",3,"struct");
-        private final String code;
-        private final int id;
-        private final String type;
-        TslEnum(String code, int id, String type) {
-            this.code = code;
-            this.id = id;
-            this.type = type;
-        }
-
-        public static TslEnum getByCode(String code) {
-            for (TslEnum tslEnum : TslEnum.values()) {
-                if (tslEnum.code.equalsIgnoreCase(code)) {
-                    return tslEnum;
-                }
-            }
-            return null;
-        }
-    }
-
     public static enum State{
         ON("ON",1),
         OFF("OFF",0);
