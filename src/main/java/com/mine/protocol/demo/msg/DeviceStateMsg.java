@@ -5,9 +5,8 @@ import lombok.Setter;
 
 /**
  * @author zoro.kong
- * @className DeviceStateMsg
- * @date 2025/6/17
- * @description TODO
+ * &#064;className  DeviceStateMsg
+ * &#064;date  2025/6/17
  */
 @Getter
 @Setter

@@ -15,35 +15,43 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * @author zoro.kong
- * @className MyAuthenticator
- * @date 2025/6/13
- * @description TODO
+ * &#064;className  MyAuthenticator
+ * &#064;date  2025/6/13
+ * &#064;description  自定义认证器示例
  */
 @Slf4j
 public class MyAuthenticator implements Authenticator {
     /**
      * 设备使用MD5算法对设备秘钥加密传输
      * @param request 认证请求消息
-     * @param deviceSession -初始化session信息
+     * @param deviceSessionCtx -初始化session信息
      * @return 认证响应消息-携带Session
      * @throws AuthenticationException 认证失败异常
      */
     @Override
-    public AuthenticationResponse authenticate(@Nonnull AuthenticationRequest request, @Nonnull DeviceSessionCtx deviceSession) throws AuthenticationException {
-        log.info("自定义设备身份认证...");
+    public AuthenticationResponse authenticate(@Nonnull AuthenticationRequest request, @Nonnull DeviceSessionCtx deviceSessionCtx) throws AuthenticationException {
         if (request.getTransport().isSame(DefaultTransport.MQTT)){
+            log.info("MQTT authenticate start.");
+            //MQTT协议身份认证 request可以强制转换为MqttAuthenticationRequest对象。
             MqttAuthenticationRequest mqttAuthenticationRequest = (MqttAuthenticationRequest) request;
+            //todo 自定义身份认证校验逻辑
             String password = mqttAuthenticationRequest.getPassword();
-            String platformPwd  = deviceSession.getMetaDevice().getDeviceSecret();
+            String platformPwd  = deviceSessionCtx.getMetaDevice().getDeviceSecret();
             if (platformPwd == null){
-                throw new AuthenticationException(61002, "设备秘钥未配置");
+                /*
+                 * 异常消息错误码推荐使用61000-61999，具体错误码请咨询平台开发人员。避免与平台错误码重复。
+                 */
+                throw new AuthenticationException(61002, "device secret is empty.");
             }
                 platformPwd = encryptMD5(platformPwd);
             if (!platformPwd.equals(password)){
-                throw new AuthenticationException(61001, "用户名或密码错误");
+                throw new AuthenticationException(61001, "device secret invalidate.");
             }
-            //会话信息没有更新的话直接返回
-            return AuthenticationResponse.success(deviceSession);
+            /*
+             * @ deviceSessionCtx -由平台生成，如有自定义字段需要保存到会话信息可以直接使用customized()字段保存，不要生成新的会话信息对象。
+             * eg：deviceSessionCtx.customized().put("test", "test info");
+             */
+            return AuthenticationResponse.success(deviceSessionCtx);
         }
 
         throw new AuthenticationException(61000, "不支持的消息协议");
