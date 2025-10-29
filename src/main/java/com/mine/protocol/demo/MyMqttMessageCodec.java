@@ -60,7 +60,7 @@ public class MyMqttMessageCodec implements DeviceMessageCodec {
         log.info("custom decode:{}",message.payloadAsString());
         if (sessionCtx instanceof MqttDeviceSession) {
             MqttDeviceSession mqttDeviceSession = (MqttDeviceSession) sessionCtx;
-            TopicDefinition topicDefinition = mqttDeviceSession.setTopic(message.topic());
+            TopicDefinition topicDefinition = mqttDeviceSession.setTopic(message.topicOrRes());
             //平台暂不支持OTA消息扩展，若要使用OTA功能，这段代码不可以修改!!!
             if (topicDefinition != null &&  topicDefinition.getTagCode()!=null && topicDefinition.getTagCode().equals("UP_OTA")) {
                 UndefinedPayloadMessage undefinedMessage = ProtocolTransformer.decodeHexPayload(HexBin.encode(message.payloadAsBytes()));
@@ -71,15 +71,15 @@ public class MyMqttMessageCodec implements DeviceMessageCodec {
             }else {
                 //todo 其他消息自定义处理逻辑
                 String payloadStr = new String(message.payloadAsBytes(), Charset.defaultCharset());
-                if(message.topic().endsWith("/state")){
+                if(message.topicOrRes().endsWith("/state")){
                     DeviceStateMsg deviceStateMsg = JSONObject.parseObject(payloadStr, DeviceStateMsg.class);
                     return ThingsModelMsgConverter.convert(deviceStateMsg,payloadStr,sessionCtx);
                 }
-                if (message.topic().endsWith("/cmd")){
+                if (message.topicOrRes().endsWith("/cmd")){
                     DeviceCommandMsg commandMsg = JSONObject.parseObject(payloadStr, DeviceCommandMsg.class);
                     return ThingsModelMsgConverter.convert(commandMsg,payloadStr,sessionCtx);
                 }
-                if (message.topic().endsWith("/errors")){
+                if (message.topicOrRes().endsWith("/errors")){
                     DeviceErrorMsg deviceErrorMsg = JSONObject.parseObject(payloadStr, DeviceErrorMsg.class);
                     return ThingsModelMsgConverter.convert(deviceErrorMsg,payloadStr,sessionCtx);
                 }

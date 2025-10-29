@@ -50,13 +50,13 @@ public class MyLwM2MMessageCodec implements DeviceMessageCodec {
     @Override
     public TransportMessage<?> decode(@Nonnull EncodedMessage message, DeviceSessionCtx sessionCtx) throws MessageDecodeException {
         byte[] payload = message.payloadAsBytes();
-        if (message.topic().equalsIgnoreCase("19/0/0")){
+        if (message.topicOrRes().equalsIgnoreCase("19/0/0")){
             RawMessage rawMessage = new RawMessage();
             // TODO object 19定义为透传消息，透传消息解码逻辑自定义
             // 参考：https://devtoolkit.openmobilealliance.org/OEditor/LWMOView
             return rawMessage;
         }
-        if(message.topic().equals("32769/0/0")){
+        if(message.topicOrRes().equals("32769/0/0")){
             /**
              * Object definition
              *
