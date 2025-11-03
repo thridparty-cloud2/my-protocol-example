@@ -39,7 +39,7 @@ public class ThingsModelMsgConverter {
         Map<String,Object> properties = new HashMap<>();
         thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
             if (code.equals("state")){
-                properties.put(code,deviceStateMsg.getState());
+                properties.put(code,deviceStateMsg.getState().equals("ON")?1:0);
             }
             if (code.equals("brightness")){
                 properties.put(code,deviceStateMsg.getBrightness());
