@@ -30,11 +30,11 @@ public class MessageCodecTest {
          */
         ThingModelDefinitionMessage message = new ThingModelDefinitionMessage();
         ThingModelDefinitionMessage.ThingModelDefinition thingModel = new ThingModelDefinitionMessage.ThingModelDefinition();
-        ObjectNode data = objMapper.createObjectNode();
+        Map<String, Object> data = new HashMap<>();
         data.put("action","SET_BRIGHTNESS");
         ObjectNode cmd = objMapper.createObjectNode();
         cmd.put("brightness",50);
-        data.putPOJO("payload",cmd);
+        data.put("payload",cmd);
         thingModel.setProps(data);
 
         message.setMessage(thingModel);
@@ -47,8 +47,7 @@ public class MessageCodecTest {
         //获取平台定义的topic信息用于初始化
         deviceSessionCtx.initTopic(getTopicDefinitions());
         deviceSessionCtx.setClientId("p1111A_dk001");
-        deviceSessionCtx.setProductKey("p1111A");
-        deviceSessionCtx.setDeviceKey("dk001");
+        deviceSessionCtx.setDeviceId("p1111A","dk001");
         deviceSessionCtx.setThingsModelDefinitionService(new ThingsModelDefinitionService() {
             @Override
             public Map<Integer, ThingModelDefinition> thingsModelDefinition(String productKey) {
@@ -62,7 +61,7 @@ public class MessageCodecTest {
         MyMqttMessageCodec myMqttMessageCodec = new MyMqttMessageCodec();
         EncodedMessage encode = myMqttMessageCodec.encode(message, deviceSessionCtx, "user/business/p1111A/dk001/cmd");
         System.out.println(encode.payloadAsString());
-        assertEquals("eyJhY3Rpb24iOiJTRVRfQlJJR0hUTkVTUyIsInBheWxvYWQiOnsiYnJpZ2h0bmVzcyI6NTB9fQ==",encode.payloadAsString());
+        assertEquals("eyJwYXlsb2FkIjp7ImJyaWdodG5lc3MiOjUwfSwiYWN0aW9uIjoiU0VUX0JSSUdIVE5FU1MifQ==",encode.payloadAsString());
     }
 
     @Test
@@ -87,8 +86,7 @@ public class MessageCodecTest {
         //获取平台定义的topic信息用于初始化
         deviceSessionCtx.initTopic(getTopicDefinitions());
         deviceSessionCtx.setClientId("p1111A_dk001");
-        deviceSessionCtx.setProductKey("p1111A");
-        deviceSessionCtx.setDeviceKey("dk001");
+        deviceSessionCtx.setDeviceId("p1111A","dk001");
         deviceSessionCtx.setThingsModelDefinitionService(new ThingsModelDefinitionService() {
             @Override
             public Map<Integer, ThingModelDefinition> thingsModelDefinition(String productKey) {

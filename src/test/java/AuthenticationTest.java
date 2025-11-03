@@ -35,8 +35,7 @@ public class AuthenticationTest {
         //获取平台定义的topic信息用于初始化
         deviceSessionCtx.initTopic(getTopicDefinitions());
         deviceSessionCtx.setClientId("p1111z_dk001");
-        deviceSessionCtx.setProductKey("p1111z");
-        deviceSessionCtx.setDeviceKey("dk001");
+        deviceSessionCtx.setDeviceId("p1111z", "dk001");
         deviceSessionCtx.setThingsModelDefinitionService(new ThingsModelDefinitionService() {
             @Override
             public Map<Integer, ThingModelDefinition> thingsModelDefinition(String productKey) {

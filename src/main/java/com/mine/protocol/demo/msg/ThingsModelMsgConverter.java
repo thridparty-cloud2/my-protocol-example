@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.x.iot.protocol.support.context.DeviceSessionCtx;
 import com.x.iot.protocol.support.context.ThingModelDefinition;
-import com.x.iot.protocol.support.message.standard.ThingModelDefinitionMessage;
 import com.x.iot.protocol.support.message.standard.AbstractThingModelMessage;
+import com.x.iot.protocol.support.message.standard.ThingModelDefinitionMessage;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.util.*;
@@ -36,7 +36,7 @@ public class ThingsModelMsgConverter {
         Map<String,ThingModelDefinition> thingModelDefinitionMap =thingModelDefinitions.entrySet().stream().collect(
                Collectors.toMap(entry -> entry.getValue().getCode(), Map.Entry::getValue));
         //获取code-value映射
-        ObjectNode properties = mapper.createObjectNode();
+        Map<String,Object> properties = new HashMap<>();
         thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
             if (code.equals("state")){
                 properties.put(code,deviceStateMsg.getState());
@@ -66,14 +66,14 @@ public class ThingsModelMsgConverter {
         Map<String,ThingModelDefinition> thingModelDefinitionMap =thingModelDefinitions.entrySet().stream().collect(
                 Collectors.toMap(entry -> entry.getValue().getCode(), Map.Entry::getValue));
         //获取code-value映射
-        ObjectNode events = mapper.createObjectNode();
+        Map<String,Object> events = new HashMap<>();
         thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
             if (code.equals("ERR_OVERHEAT")){
                 ObjectNode values = mapper.createObjectNode();
                 values.put("severity", Objects.requireNonNull(SEVERITY.getByCode(deviceErrorMsg.getSeverity())).value);
                 values.put("message",deviceErrorMsg.getMessage());
                 values.put("timestamp",deviceErrorMsg.getTimestamp());
-                events.putPOJO(code,values);
+                events.put(code,values);
             }
         });
         ThingModelDefinitionMessage.ThingModelDefinition definition = new ThingModelDefinitionMessage.ThingModelDefinition();
@@ -95,13 +95,13 @@ public class ThingsModelMsgConverter {
         Map<String,ThingModelDefinition> thingModelDefinitionMap =thingModelDefinitions.entrySet().stream().collect(
                 Collectors.toMap(entry -> entry.getValue().getCode(), Map.Entry::getValue));
         //获取code-value映射
-        ObjectNode properties = mapper.createObjectNode();
+        Map<String,Object> properties = new HashMap<>();
         thingModelDefinitionMap.forEach((code,thingModelDefinition) -> {
             if (code.equals("action")){
                 properties.put(code,deviceCommandMsg.getAction());
             }
             if (code.equals("payload")){
-                properties.putPOJO(code,deviceCommandMsg.getPayload());
+                properties.put(code,deviceCommandMsg.getPayload());
             }
         });
         ThingModelDefinitionMessage.ThingModelDefinition definition = new ThingModelDefinitionMessage.ThingModelDefinition();
