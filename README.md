@@ -1,7 +1,7 @@
 # Quick Start
 ## 1. Clone the repo
 ```bash
-git clone https://github.com/thridparty-cloud2/my-protocol-example
+git clone -b 2.0.0-demo https://github.com/thridparty-cloud2/my-protocol-example
 ```
 ## 2. Package the project
 ```bash
