@@ -5,6 +5,8 @@ git clone -b 2.0.0-demo https://github.com/thridparty-cloud2/my-protocol-example
 ```
 ## 2. Package the project
 ```bash
+cd my-protocol-example/
+
 mvn clean package 
 ```
 ## 3. Run Tests
