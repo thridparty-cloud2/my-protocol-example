@@ -104,6 +104,7 @@ public class MyMqttMessageCodec implements DeviceMessageCodec {
         //自定义编码逻辑
         if (message instanceof AbstractThingModelMessage && topic.endsWith("/cmd")){
             ThingModelDefinitionMessage thingModelDefinitionMessage = (ThingModelDefinitionMessage) message;
+            log.info("thingModelDefinitionMessage:{}",thingModelDefinitionMessage);
             try {
                 payload = mapper.writeValueAsBytes(thingModelDefinitionMessage.message().getProps());
             } catch (Exception e) {
