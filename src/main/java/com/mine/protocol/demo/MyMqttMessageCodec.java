@@ -17,6 +17,7 @@ import com.x.iot.protocol.support.codec.ByteEncodeMessage;
 import com.x.iot.protocol.support.codec.EncodedMessage;
 import com.x.iot.protocol.support.context.DeviceSessionCtx;
 import com.x.iot.protocol.support.context.MqttDeviceSession;
+import com.x.iot.protocol.support.context.MqttTopicDefinition;
 import com.x.iot.protocol.support.context.TopicDefinition;
 import com.x.iot.protocol.support.exception.MessageDecodeException;
 import com.x.iot.protocol.support.exception.MessageEncodeException;
@@ -60,9 +61,10 @@ public class MyMqttMessageCodec implements DeviceMessageCodec {
         log.info("custom decode:{}",message.payloadAsString());
         if (sessionCtx instanceof MqttDeviceSession) {
             MqttDeviceSession mqttDeviceSession = (MqttDeviceSession) sessionCtx;
-            TopicDefinition topicDefinition = mqttDeviceSession.setTopic(message.topicOrRes());
+            MqttTopicDefinition topicDefinition = mqttDeviceSession.setTopic(message.topicOrRes());
             //平台暂不支持OTA消息扩展，若要使用OTA功能，这段代码不可以修改!!!
-            if (topicDefinition != null &&  topicDefinition.getTagCode()!=null && topicDefinition.getTagCode().equals("UP_OTA")) {
+            if (topicDefinition != null &&  topicDefinition.getTopicCode()!=null
+                    && topicDefinition.getTopicCode()==MqttTopicDefinition.TopicCode.OTA_TTLV) {
                 UndefinedPayloadMessage undefinedMessage = ProtocolTransformer.decodeHexPayload(HexBin.encode(message.payloadAsBytes()));
                 //设置packetId
                 sessionCtx.setMsgId(undefinedMessage.getPacketId()+"");

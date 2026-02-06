@@ -17,9 +17,9 @@
         <dependency>
             <groupId>com.x.iot</groupId>
             <artifactId>protocol-support</artifactId>
-            <version>2.0.0-RELEASE</version>
+            <version>2.1.0-RELEASE</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/lib/protocol-support-2.0.3-RELEASE.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/lib/protocol-support-2.1.0-RELEASE.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
