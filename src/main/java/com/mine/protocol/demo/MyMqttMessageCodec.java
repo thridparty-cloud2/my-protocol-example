@@ -25,6 +25,7 @@ import com.x.iot.protocol.support.message.TagTypeLenValue;
 import com.x.iot.protocol.support.message.TransportMessage;
 import com.x.iot.protocol.support.message.standard.AbstractThingModelMessage;
 import com.x.iot.protocol.support.message.standard.OTAMessage;
+import com.x.iot.protocol.support.message.standard.RawMessage;
 import com.x.iot.protocol.support.message.standard.ThingModelDefinitionMessage;
 import com.x.iot.protocol.support.spi.DeviceMessageCodec;
 import lombok.extern.slf4j.Slf4j;
@@ -104,15 +105,12 @@ public class MyMqttMessageCodec implements DeviceMessageCodec {
         log.info("custom encode:{}",message);
         byte[] payload = null;
         //自定义编码逻辑
-        if (message instanceof AbstractThingModelMessage && topic.endsWith("/cmd")){
-            ThingModelDefinitionMessage thingModelDefinitionMessage = (ThingModelDefinitionMessage) message;
-            log.info("thingModelDefinitionMessage:{}",thingModelDefinitionMessage);
+        if (message instanceof RawMessage && topic.endsWith("/cmd")){
             try {
-                payload = mapper.writeValueAsBytes(thingModelDefinitionMessage.message().getProps());
+                payload = Base64.getDecoder().decode(message.payload());
             } catch (Exception e) {
                 throw new MessageEncodeException(60010,"message encode error.",e);
             }
-
         }
         //OTA消息 平台暂不支持OTA消息扩展，若要使用OTA功能，这段代码不可以修改!!!
         if (message instanceof OTAMessage){
