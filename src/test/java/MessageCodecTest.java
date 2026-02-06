@@ -59,7 +59,7 @@ public class MessageCodecTest {
         });
         deviceSessionCtx.setMetaDevice(DeviceMeta.builder().deviceSecret("1234567").authMode(1).productSecret("${your product secret}").enabled(1).build());
         MyMqttMessageCodec myMqttMessageCodec = new MyMqttMessageCodec();
-        EncodedMessage encode = myMqttMessageCodec.encode(message, deviceSessionCtx, "user/business/p1111A/dk001/cmd");
+        EncodedMessage encode = myMqttMessageCodec.encode(message, deviceSessionCtx, "usr/proprietary/p1111A/dk001/cmd");
         System.out.println(encode.payloadAsString());
         assertEquals("eyJwYXlsb2FkIjp7ImJyaWdodG5lc3MiOjUwfSwiYWN0aW9uIjoiU0VUX0JSSUdIVE5FU1MifQ==",encode.payloadAsString());
     }
@@ -77,7 +77,7 @@ public class MessageCodecTest {
          */
         TextStrEncodeMessage encodedMessage = EncodeMessageFactory.create("ewogICAgICAgICJ0aW1lc3RhbXAiOiAiMTc1MDA2NDk4NjE1MSIsCiAgICAgICAgInN0YXRlIjogIk9OIiwKICAgICAgICAiYnJpZ2h0bmVzcyI6IDc1Cn0=",
                 "base64");
-        encodedMessage.setPayloadType("user/business/p1111A/dk001/state");
+        encodedMessage.setPayloadType("usr/proprietary/p1111A/dk001/state");
 
         /*
           模拟设备会话信息
@@ -128,28 +128,29 @@ public class MessageCodecTest {
         System.out.println(decode.message());
         assertInstanceOf(ThingModelDefinitionMessage.class, decode);
     }
-    private List<TopicDefinition> getTopicDefinitions() {
+    private List<MqttTopicDefinition> getTopicDefinitions() {
         //模拟获取topic信息
-        List<TopicDefinition> topicDefinitions = new ArrayList<>();
-        TopicDefinition topicDefinition = new TopicDefinition();
-        topicDefinition.setTopic("user/business/p1111A/dk001/state");
+        List<MqttTopicDefinition> topicDefinitions = new ArrayList<>();
+        MqttTopicDefinition topicDefinition = new MqttTopicDefinition();
+        topicDefinition.setTopic("usr/proprietary/p1111A/dk001/state");
         topicDefinition.setPerm(1);
-        topicDefinition.setTagCode("UP_THING_MODEL");
-        topicDefinition.setType("BUILTIN");
+        topicDefinition.setTopicCode(MqttTopicDefinition.TopicCode.CUSTOM);
+        topicDefinition.setType("CUSTOM");
         topicDefinitions.add(topicDefinition);
         topicDefinitions.add(topicDefinition);
 
-        topicDefinition = new TopicDefinition();
-        topicDefinition.setTopic("user/business/p1111A/dk001/cmd");
+        topicDefinition = new MqttTopicDefinition();
+        topicDefinition.setTopic("usr/proprietary/p1111A/dk001/cmd");
         topicDefinition.setPerm(2);
-        topicDefinition.setTagCode("DW_THING_MODEL");
-        topicDefinition.setType("BUILTIN");
+        topicDefinition.setTopicCode(MqttTopicDefinition.TopicCode.CUSTOM);
+        topicDefinition.setType("CUSTOM");
         topicDefinitions.add(topicDefinition);
 
-        topicDefinition = new TopicDefinition();
-        topicDefinition.setTopic("user/custom/p1111A/dk001/errors");
+        topicDefinition = new MqttTopicDefinition();
+        topicDefinition.setTopic("usr/proprietary/p1111A/dk001/errors");
         topicDefinition.setPerm(1);
         topicDefinition.setType("CUSTOM");
+        topicDefinition.setTopicCode(MqttTopicDefinition.TopicCode.CUSTOM);
         topicDefinitions.add(topicDefinition);
         return topicDefinitions;
     }

@@ -49,13 +49,13 @@ public class AuthenticationTest {
         assertTrue(authenticate.isSuccess(), "认证成功");
     }
 
-    private List<TopicDefinition> getTopicDefinitions() {
+    private List<MqttTopicDefinition> getTopicDefinitions() {
         //模拟获取topic信息
-        List<TopicDefinition> topicDefinitions = new ArrayList<>();
-        TopicDefinition topicDefinition = new TopicDefinition();
-        topicDefinition.setTopic("q/2/d/p1111z/dk001/bus");
+        List<MqttTopicDefinition> topicDefinitions = new ArrayList<>();
+        MqttTopicDefinition topicDefinition = new MqttTopicDefinition();
+        topicDefinition.setTopic("sys/builtin/p1111z/dk001/tm/prop/ttlv");
         topicDefinition.setPerm(2);
-        topicDefinition.setTagCode("UP_THING_MODEL");
+        topicDefinition.setTopicCode(MqttTopicDefinition.TopicCode.TM_PROP_TTLV);
         topicDefinitions.add(topicDefinition);
         topicDefinitions.add(topicDefinition);
         return topicDefinitions;
