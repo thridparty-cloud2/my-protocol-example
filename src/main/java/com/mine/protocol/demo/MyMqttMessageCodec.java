@@ -13,6 +13,7 @@ import com.mine.protocol.demo.ota.UndefinedPayloadMessage;
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 import com.x.iot.protocol.support.DefaultTransport;
 import com.x.iot.protocol.support.Transport;
+import com.x.iot.protocol.support.codec.Base64StrEncodeMessage;
 import com.x.iot.protocol.support.codec.ByteEncodeMessage;
 import com.x.iot.protocol.support.codec.EncodedMessage;
 import com.x.iot.protocol.support.context.DeviceSessionCtx;
@@ -106,11 +107,7 @@ public class MyMqttMessageCodec implements DeviceMessageCodec {
         byte[] payload = null;
         //自定义编码逻辑
         if (message instanceof RawMessage && topic.endsWith("/cmd")){
-            try {
-                payload = Base64.getDecoder().decode(message.payload());
-            } catch (Exception e) {
-                throw new MessageEncodeException(60010,"message encode error.",e);
-            }
+            return new Base64StrEncodeMessage(message.payload());
         }
         //OTA消息 平台暂不支持OTA消息扩展，若要使用OTA功能，这段代码不可以修改!!!
         if (message instanceof OTAMessage){

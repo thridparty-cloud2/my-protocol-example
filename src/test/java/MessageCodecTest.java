@@ -1,4 +1,5 @@
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mine.protocol.demo.MyMqttMessageCodec;
@@ -8,6 +9,7 @@ import com.x.iot.protocol.support.codec.TextStrEncodeMessage;
 import com.x.iot.protocol.support.context.*;
 import com.x.iot.protocol.support.message.TransportMessage;
 import com.x.iot.protocol.support.message.standard.AbstractThingModelMessage;
+import com.x.iot.protocol.support.message.standard.RawMessage;
 import com.x.iot.protocol.support.message.standard.ThingModelDefinitionMessage;
 import org.junit.jupiter.api.Test;
 
@@ -24,21 +26,27 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MessageCodecTest {
     public static final ObjectMapper objMapper = new ObjectMapper();
     @Test
-    public void testEncode() {
+    public void testEncode() throws JsonProcessingException {
         /*
           模拟设备下发控制指令
          */
-        ThingModelDefinitionMessage message = new ThingModelDefinitionMessage();
-        ThingModelDefinitionMessage.ThingModelDefinition thingModel = new ThingModelDefinitionMessage.ThingModelDefinition();
+
         Map<String, Object> data = new HashMap<>();
         data.put("action","SET_BRIGHTNESS");
         ObjectNode cmd = objMapper.createObjectNode();
         cmd.put("brightness",50);
         data.put("payload",cmd);
-        thingModel.setProps(data);
+        RawMessage rawMessage = new RawMessage();
+        // 创建 ObjectMapper 实例
+        ObjectMapper objMapper = new ObjectMapper();
+        // 1. 将 Map 转换为 JSON 字符串
+        String jsonString = objMapper.writeValueAsString(data);
 
-        message.setMessage(thingModel);
-        message.setSubType(AbstractThingModelMessage.ThingsModelSubType.WRITE_REQ);
+        // 2. 将 JSON 字符串编码为 Base64
+        String base64String = Base64.getEncoder().encodeToString(jsonString.getBytes());
+        rawMessage.setPayload(base64String);
+        rawMessage.setPayloadFormat("base64");
+        rawMessage.setMessage( data);
 
         /*
           模拟设备会话信息
@@ -59,8 +67,7 @@ public class MessageCodecTest {
         });
         deviceSessionCtx.setMetaDevice(DeviceMeta.builder().deviceSecret("1234567").authMode(1).productSecret("${your product secret}").enabled(1).build());
         MyMqttMessageCodec myMqttMessageCodec = new MyMqttMessageCodec();
-        EncodedMessage encode = myMqttMessageCodec.encode(message, deviceSessionCtx, "usr/proprietary/p1111A/dk001/cmd");
-        System.out.println(encode.payloadAsString());
+        EncodedMessage encode = myMqttMessageCodec.encode(rawMessage, deviceSessionCtx, "usr/proprietary/p1111A/dk001/cmd");
         assertEquals("eyJwYXlsb2FkIjp7ImJyaWdodG5lc3MiOjUwfSwiYWN0aW9uIjoiU0VUX0JSSUdIVE5FU1MifQ==",encode.payloadAsString());
     }
 
