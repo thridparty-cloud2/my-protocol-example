@@ -1,7 +1,7 @@
 # Quick Start
 ## 1. Clone the repo
 ```bash
-git clone -b 2.0.0-demo https://github.com/thridparty-cloud2/my-protocol-example
+git clone -b 2.1.0-demo https://github.com/thridparty-cloud2/my-protocol-example
 ```
 ## 2. Package the project
 ```bash
@@ -41,4 +41,4 @@ For detailed specifications and guidelines, please refer to:
 - **Recommended**: Java 8 or later (1.8.+)
 - **Note**: The project is compatible with Java 8 and all subsequent versions
 
-> **Note:** protocol support version: 2.0.0
+> **Note:** protocol support version: 2.1.0
